@@ -36,7 +36,9 @@ public class GA_Krigg {
     public static HashMap<Chromosome, Double> fitnessValues1 = new HashMap<>();
     public static HashMap<Chromosome, Double> fitnessValues2 = new HashMap<>();
     public static String[] key_temp;
-    
+    public static List<Chromosome> realChromosome;
+    public static List<Chromosome> predictChromosome;
+    public static List<Chromosome> new_population;
     public static List<Chromosome> createRandomPopulation(int size) {
         List<Chromosome> result = new ArrayList<Chromosome>();
         for (int i = 0; i < size; i++) {
@@ -138,31 +140,61 @@ public class GA_Krigg {
             return false;
         }
     }
-
+    public static List<Chromosome> getRealChromosome(){
+        return realChromosome;
+    }
+    // dung cho the he F1 tro di
+    public static List<Chromosome> computeFitness (List<Chromosome> population, List<Chromosome> temp, List<Datum> train, List<Datum> dev) 
+            throws InterruptedException, IOException {
+       new_population= predictFitness2(population, temp);
+       return new_population;
+    }
+    
+    public static List<Chromosome> predictFitness2(List<Chromosome> pop, List<Chromosome> temp){
+        for (int i = 0; i < pop.size(); i++) {
+            Chromosome c= pop.get(i);
+            c = CalFitness.computeFitnessByKriging2(c, temp);
+            if (c.getFitness() <= 0 || c.getFitness() >= 100 || c.getFitness() == Double.POSITIVE_INFINITY
+                    || c.getFitness() == Double.NEGATIVE_INFINITY) {
+               
+                    c.setFitness(0);
+                
+                Object[] keySet = fitnessValues.keySet().toArray();
+               for(int j=0;j<test.GA_NERSystem.key_temp.length;j++)
+               {
+                   fitnessValues.remove(test.GA_NERSystem.key_temp[j]);
+               }
+                pop.set(i, c);
+            }
+        }
+        return pop;
+            
+        }
+    
+      // dung cho the he P ban dau
      public static  List<Chromosome> computeFitness2(List<Chromosome> population, List<Datum> train, List<Datum> dev) throws InterruptedException, IOException {
       
-        List<Chromosome> subList1;
-        List<Chromosome> subList2;
+        
         double temp= (1 - percentPredict) * population.size();
-        subList1 = calFitnessPopulation(population.subList(0, (int)(temp)), train, dev);      
-        subList2 = predictFitness(population.subList((int)(temp), population.size()), train, dev);
+        realChromosome = calFitnessPopulation(population.subList(0, (int)(temp)), train, dev);      
+        predictChromosome = predictFitness(population.subList((int)(temp), population.size()));
 
-        List<Chromosome> new_population = new ArrayList<Chromosome>();
-        new_population.addAll(subList1);
-        new_population.addAll(subList2);        
-        for (int i = new_population.size()-1; i > 0; i--) {
-            Chromosome ch = new_population.get(i);
-            int k=0;
-            while (!(ch.getFitness() > 0.0 && ch.getFitness() < 100.0)) {
-              ch=new Chromosome();              
-              ch= calFitness(ch, train, dev);
-              k++;
-              if(k>5) break;
-              
-            }
-            if(ch.getFitness()>0 && ch.getFitness()<100) new_population.set(i, ch);
-            else new_population.remove(i);
-        }
+        new_population = new ArrayList<Chromosome>();
+        new_population.addAll(realChromosome);
+        new_population.addAll(predictChromosome);        
+//        for (int i = new_population.size()-1; i > 0; i--) {
+//            Chromosome ch = new_population.get(i);
+//            int k=0;
+//            while (!(ch.getFitness() > 0.0 && ch.getFitness() < 100.0)) {
+//              ch=new Chromosome();              
+//              ch= calFitness(ch, train, dev);
+//              k++;
+//              if(k>5) break;
+//              
+//            }
+//            if(ch.getFitness()>0 && ch.getFitness()<100) new_population.set(i, ch);
+//            else new_population.remove(i);
+//        }
         return new_population;         
     }
      
@@ -218,7 +250,8 @@ public class GA_Krigg {
 
         return population;
     }
-          private static List<Chromosome> predictFitness(List<Chromosome> subList, List<Datum> train, List<Datum> dev) throws IOException, InterruptedException {
+         //dung cho the he P
+          private static List<Chromosome> predictFitness(List<Chromosome> subList) throws IOException, InterruptedException {
         // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 
         for (int i = 0; i < subList.size(); i++) {

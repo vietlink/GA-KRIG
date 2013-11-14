@@ -28,6 +28,7 @@ public class GA_NERSystem {
     public static List<String> locDict = new ArrayList<>();
     public static List<String> orgDict = new ArrayList<>();
     public static String[] key_temp;
+    public static List<Chromosome> temp;
     /**
      * @param args the command line arguments
      */
@@ -59,20 +60,20 @@ public class GA_NERSystem {
 
         //Tinh lai cho cai tot nhat
 //        Chromosome ch = population.get(0);
-        if (population.get(0).getFitness_err()!=0.0){
-            Chromosome ch = population.get(0);
-            population.set(0, GA_Krigg.calFitness(ch, train, dev));
-        }
-        ch_max = population.get(0);
+//        if (population.get(0).getFitness_err()!=0.0){
+//            Chromosome ch = population.get(0);
+//            population.set(0, GA_Krigg.calFitness(ch, train, dev));
+//        }
+//        ch_max = population.get(0);
          GA_Krigg.printPopulation(population);
 //         population=recomputeFitness(population,train, dev);
         for (int i = 0; i < numberGeneration; i++) {
             System.out.println("Generation "+i);
-
+            temp= GA_Krigg.getRealChromosome();
             // tao the he tiep theo
             population = GA_Krigg.createNewPopulation2(population);
             //tinh fitness
-            population = GA_Krigg.computeFitness2(population, train, dev);
+            population = GA_Krigg.computeFitness(population,temp, train, dev);
             //sap xep ca the
             population = GA_Krigg.sortPopulation2(population);
             
