@@ -157,8 +157,26 @@ public class CalFitness implements Callable<List<Chromosome>> {
         return result;
 
     }
+     // dung cho the he F1 tro di
+     public static Chromosome computeFitnessByKriging2(Chromosome ch, List<Chromosome> temp){
+        
+        Chromosome featureListStar= new Chromosome();
+        featureListStar= ch;
+        Chromosome[] x= new Chromosome[temp.size()];
+        double[] fitness = new double[temp.size()];
+        
+        for (int i = 0; i<temp.size(); i++) {
+            x[i] = temp.get(i);
+            fitness[i] = (double) temp.get(i).getFitness();            
+        }
+        double[] result = computeFitnessByKrig(featureListStar, x, fitness);
 
-     
+        ch.setFitness(result[0]) ;
+        ch.setFitness_err(Math.abs(result[1])); ;
+
+        return ch;
+     }
+     //dung cho the he P
      public static Chromosome computeFitnessByKriging(Chromosome ch, HashMap hm)
     {
 
