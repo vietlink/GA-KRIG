@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import GA.*;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import util.FileOperation;
 /**
  *
@@ -32,7 +33,7 @@ public class GA_NERSystem {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException{
+    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, ExecutionException{
         // TODO code application logic here
         List<Datum> train = FileOperation.readDataFile("/home/vietlink/Documents/chuong_trinh/postagged/trn/");
         List<Datum> dev = FileOperation.readDataFile("/home/vietlink/Documents/chuong_trinh/postagged/dev");
@@ -45,7 +46,7 @@ public class GA_NERSystem {
     }
     
     public static void evolution4(int startSize, List<Datum> train,
-            List<Datum> dev, int numberGeneration) throws InterruptedException, IOException {
+            List<Datum> dev, int numberGeneration) throws InterruptedException, IOException, ExecutionException {
         
         key_temp = new String[startSize];
         // tao quan the ngau nhien
@@ -58,16 +59,11 @@ public class GA_NERSystem {
         population = GA_Krigg.sortPopulation2(population);
 //        GA_Krigg.printPopulation(population);
 
-        //Tinh lai cho cai tot nhat
-//        Chromosome ch = population.get(0);
-//        if (population.get(0).getFitness_err()!=0.0){
-//            Chromosome ch = population.get(0);
-//            population.set(0, GA_Krigg.calFitness(ch, train, dev));
-//        }
-//        ch_max = population.get(0);
          GA_Krigg.printPopulation(population);
 //         population=recomputeFitness(population,train, dev);
-        for (int i = 0; i < numberGeneration; i++) {
+         ch_max= population.get(0);
+        System.out.println("------------------------ \n");
+        for (int i = 1; i < numberGeneration; i++) {
             System.out.println("Generation "+i);
             temp= GA_Krigg.getRealChromosome();
             // tao the he tiep theo
@@ -77,17 +73,18 @@ public class GA_NERSystem {
             //sap xep ca the
             population = GA_Krigg.sortPopulation2(population);
             
-            GA_Krigg.printPopulation(population);
+//            GA_Krigg.printPopulation(population);
             //tinh lai fitness
-             population=GA_Krigg.recomputeFitness(population,train,dev);
+//             population=GA_Krigg.recomputeFitness(population,train,dev);
              //sap xep lai ca the
-             population = GA_Krigg.sortPopulation2(population);
-            if (ch_max.getFitness() < GA_Krigg.calFitness(population.get(0), train, dev).getFitness()) {
-                ch_max = population.get(0);
-            }
+//             population = GA_Krigg.sortPopulation2(population);
+//           
+            ch_max= population.get(0);
               System.out.println("Ch max:" + ch_max.getFitness());
         }
+        System.out.println("------------------------ \n");
         GA_Krigg.printPopulation(population);
+        System.out.println("------------------------ \n");
         System.out.println("Ch max:" + ch_max.getFitness());
         //in ra ket qua, doi chieu tu encodeFeature sang FeatureName
         System.out.println(util.Convert.convertToString(ch_max));

@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -45,7 +46,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
     }
 
     public CalFitness(List<Chromosome> population, int start, int end, List<Datum> train, List<Datum> dev, HashMap</*String*/Chromosome, Double> fitnessValue) {
-        this.population = population;
+        this.population = population;        
         this.start = start;
         this.end = end;
         this.train = train;
@@ -53,12 +54,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
         this.fitnessValue = fitnessValue;
     }
 
-    public CalFitness(List<Chromosome> population, int start, int end) {
-        this.population = population;
-        this.start = start;
-        this.end = end;
-    }
-
+   
     @Override
     public List<Chromosome> call() throws Exception {
         
@@ -67,22 +63,23 @@ public class CalFitness implements Callable<List<Chromosome>> {
         Runtime.getRuntime().gc();
         for (int i = start; i < end; i++) {
             Chromosome ch = population.get(i);
-            if (fitnessValue.get(ch) != null && fitnessValue.get(ch)!=0.0) {
-                ch.setFitness(fitnessValue.get(ch));
-            } else {
-                Random t = new Random();
-                if (t.nextDouble() >= GA.GA_Krigg.predicRatio || fitnessValue.size()<50) {
+//            if (fitnessValue.get(ch) != null && fitnessValue.get(ch)!=0.0) {
+//                ch.setFitness(fitnessValue.get(ch));
+//            } else {
+//                Random t = new Random();
+//                if (t.nextDouble() >= GA.GA_Krigg.predicRatio || fitnessValue.size()<50) {
                     String listFeature= Convert.convertToString(ch);
                     List<Datum> computedTrain = featureFactory.computeFeature(train, listFeature);
                     List<Datum> computedDev = featureFactory.computeFeature(dev, listFeature);
                     String path = "temp/";
                     Random r = new Random();
-
                     String trainFile = path + String.valueOf("train_"+r.nextInt(1000000));
                     String devFile = path + String.valueOf("dev"+r.nextInt(10000000));
                     featureFactory.writeToFeatureFile(computedTrain, trainFile, listFeature);
                     featureFactory.writeToFeatureFile(computedDev, devFile, listFeature);
-                    String result = runMaxent(trainFile, devFile);                                        
+                    System.out.print("Chromosome "+i+" :To maxent \n");
+                    String result = runMaxent(trainFile, devFile);
+                    System.out.println("Chromosome "+i+" :Maxent completed \n");
                     int start2 = 0;                    
                     result = result.trim();                  
                     for (int j = 0; j < result.length(); j++) {
@@ -95,20 +92,21 @@ public class CalFitness implements Callable<List<Chromosome>> {
                     }
                     result = result.substring(start2 - 1, result.indexOf("%"));
                     ch.setFitness(Double.valueOf(result) * 0.99 + 0.01 *78/ ch.getEncodedFeature().cardinality());
-                    
+                    System.out.print("Chromosome "+i+" Done \n");
+//                    System.out.println("Chromosome "+i+" : fitness "+ch.getFitness()+" err: "+ch.getFitness_err());
                     //delete file
                     File f = new File(trainFile);
                     File f2 = new File(devFile);
                     f.delete();
                     f2.delete();
                     fitnessValue.put(ch, ch.getFitness());
-
-                } else {
-
-                    computeFitnessByKriging(ch, fitnessValue);
-
-                }
-            }
+//                }
+//                } else {
+//
+//                    computeFitnessByKriging(ch, fitnessValue);
+//
+//                }
+//            }
 
         }
        
@@ -177,19 +175,18 @@ public class CalFitness implements Callable<List<Chromosome>> {
         return ch;
      }
      //dung cho the he P
-     public static Chromosome computeFitnessByKriging(Chromosome ch, HashMap hm)
+     public static Chromosome computeFitnessByKriging(Chromosome ch, List<Chromosome> temp)
     {
 
         Chromosome featureListStar= new Chromosome();
 
         featureListStar= ch;
-        Chromosome[] x= new Chromosome[hm.keySet().size()];
-        double[] fitness = new double[hm.keySet().size()];
-        int i = 0;
-        for (Object k : hm.keySet()) {
-            x[i] = (Chromosome) k;
-            fitness[i] = (double) hm.get(k);
-            i++;
+        Chromosome[] x= new Chromosome[temp.size()];
+        double[] fitness = new double[temp.size()];
+        for (int i = 0; i<temp.size(); i++) {
+            x[i] = temp.get(i);
+            
+            fitness[i] = (double) temp.get(i).getFitness();            
         }
         double[] result = computeFitnessByKrig(featureListStar, x, fitness);
 
@@ -203,6 +200,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
         double[] result;
 //        System.out.println("COmpute by Krig, matrix");
         int N = fitness.length;
+         
 //        System.out.println("N=" + N);
 //        System.out.println("Fitness vector is:");
 //        for(int i=0;i<fitness.length;i++)
@@ -212,7 +210,8 @@ public class CalFitness implements Callable<List<Chromosome>> {
         double[][] Vstar = new double[1][N + 1];
         double[][] V = new double[N + 1][N + 1];
         System.arraycopy(fitness, 0, Y[0], 0, N);
-        Y[0][Y[0].length - 1] = 0;
+         
+        Y[0][N] = 0;
 //         System.out.println("Matrix Y");
 //        for(int i=0;i<Y[0].length;i++) System.out.print(Y[0][i]+" ");
 //        System.out.println("");
@@ -220,7 +219,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
         for (int i = 0; i < N; i++) {
             Vstar[0][i] = variogram(featureListStar, x[i]);
         }
-        Vstar[0][Vstar[0].length - 1] = 1;
+        Vstar[0][N] = 1;
 
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
@@ -232,7 +231,12 @@ public class CalFitness implements Callable<List<Chromosome>> {
             V[j][N] = 1;
         }
         V[N][N] = 0;
-
+//         for (int i = 0; i < N+1; i++) {
+//             for (int j = 0; j < N+1; j++) {
+//                 System.out.println(V[i][j]+"  ");
+//             }
+//             System.out.println("\n"); 
+//        }
         org.jmatrices.dbl.Matrix Y_matrix = MatrixFactory.getMatrix(1, N + 1, null, Y);
         org.jmatrices.dbl.Matrix Vstar_matrix = MatrixFactory.getMatrix(1, N + 1, null, Vstar);
         org.jmatrices.dbl.Matrix V_matrix = MatrixFactory.getMatrix(N + 1, N + 1, null, V);
@@ -258,6 +262,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
             result[1] = variance.get(1, 1);
             return result;
         } catch (Exception e) {
+//            e.printStackTrace();
             return new double[]{0.0, 0.0};
 
         }
@@ -271,14 +276,15 @@ public class CalFitness implements Callable<List<Chromosome>> {
         double alph=0.2;
         double beta=1.2;
         
-        return alph*Math.pow( computeDistance(x1, x2),beta);
+        return alph*Math.pow(computeDistance(x1, x2),beta);
     }
     
     
     public static int computeDistance(Chromosome a, Chromosome b){
-        int result=0;
-        a.getEncodedFeature().xor(b.getEncodedFeature());
-        result= a.getEncodedFeature().cardinality();
+        int result;
+        BitSet t= (BitSet) a.getEncodedFeature().clone();
+        t.xor(b.getEncodedFeature());
+        result= t.cardinality();
         return result;
     }
     

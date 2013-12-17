@@ -15,6 +15,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -39,13 +40,15 @@ public class GA_Krigg {
     public static List<Chromosome> realChromosome;
     public static List<Chromosome> predictChromosome;
     public static List<Chromosome> new_population;
+    
     public static List<Chromosome> createRandomPopulation(int size) {
         List<Chromosome> result = new ArrayList<Chromosome>();
         for (int i = 0; i < size; i++) {
             Chromosome ch = new Chromosome();
             result.add(ch);
-
+            
         }
+        System.out.println("Create P completed, number of chromosome is "+result.size()+ "\n");
         return result;
     }
      public static List<Chromosome> createNewPopulation2(List<Chromosome> population/*, List<String> featureNames*/) {
@@ -154,32 +157,45 @@ public class GA_Krigg {
         for (int i = 0; i < pop.size(); i++) {
             Chromosome c= pop.get(i);
             c = CalFitness.computeFitnessByKriging2(c, temp);
-            if (c.getFitness() <= 0 || c.getFitness() >= 100 || c.getFitness() == Double.POSITIVE_INFINITY
-                    || c.getFitness() == Double.NEGATIVE_INFINITY) {
-               
-                    c.setFitness(0);
-                
-                Object[] keySet = fitnessValues.keySet().toArray();
-               for(int j=0;j<test.GA_NERSystem.key_temp.length;j++)
-               {
-                   fitnessValues.remove(test.GA_NERSystem.key_temp[j]);
-               }
-                pop.set(i, c);
-            }
+//            if (c.getFitness() <= 0 || c.getFitness() >= 100 || c.getFitness() == Double.POSITIVE_INFINITY
+//                    || c.getFitness() == Double.NEGATIVE_INFINITY) {
+//               
+//                    c.setFitness(0);
+//                
+//                Object[] keySet = fitnessValues.keySet().toArray();
+//               for(int j=0;j<test.GA_NERSystem.key_temp.length;j++)
+//               {
+//                   fitnessValues.remove(test.GA_NERSystem.key_temp[j]);
+//               }
+//                pop.set(i, c);
+//            }
+             pop.set(i, c);
         }
         return pop;
             
         }
     
       // dung cho the he P ban dau
-     public static  List<Chromosome> computeFitness2(List<Chromosome> population, List<Datum> train, List<Datum> dev) throws InterruptedException, IOException {
+     public static  List<Chromosome> computeFitness2(List<Chromosome> population, List<Datum> train, List<Datum> dev) throws InterruptedException, IOException, ExecutionException {
       
-        
-        double temp= (1 - percentPredict) * population.size();
-        realChromosome = calFitnessPopulation(population.subList(0, (int)(temp)), train, dev);      
-        predictChromosome = predictFitness(population.subList((int)(temp), population.size()));
-
         new_population = new ArrayList<Chromosome>();
+        double temp= (1 - percentPredict) * population.size();        
+        realChromosome = calFitnessPopulation(population.subList(0, (int)(temp)), train, dev);      
+         System.out.println("Calculate completed");
+//         for (int i = 0; i < realChromosome.size(); i++) {
+//             System.out.println(i+" "+ realChromosome.get(i).getFitness()+" "+realChromosome.get(i).getFitness_err());
+//         }
+//         System.err.println("---------------- \n");
+        predictChromosome = predictFitness(population.subList((int)(temp), population.size()), realChromosome);       
+         System.out.println("Predict completed");
+//         System.out.println("Calculated value \n");
+//         for (int i = 0; i < realChromosome.size(); i++) {
+//             System.out.print(realChromosome.get(i).getFitness()+ "\n");
+//         }
+//         System.out.print("predicted value \n");
+//         for (int i = 0; i < predictChromosome.size(); i++) {
+//             System.out.print(predictChromosome.get(i).getFitness()+"  " + predictChromosome.get(i).getFitness_err()+ "\n");
+//         }
         new_population.addAll(realChromosome);
         new_population.addAll(predictChromosome);        
 //        for (int i = new_population.size()-1; i > 0; i--) {
@@ -228,9 +244,10 @@ public class GA_Krigg {
     }
     
         public static List<Chromosome> calFitnessPopulation(List<Chromosome> population,
-            List<Datum> train, List<Datum> dev) throws IOException, InterruptedException {
+            List<Datum> train, List<Datum> dev) throws IOException, InterruptedException, ExecutionException {
         return parallelComputeFitness(population, train, dev);
     }
+        
         
          public static List<Chromosome> parallelComputeFitness(List<Chromosome> population,
             List<Datum> train, List<Datum> dev) throws InterruptedException {
@@ -246,29 +263,36 @@ public class GA_Krigg {
                 train, dev, fitnessValues2));
 
         results = executor.invokeAll(a);
+        
         executor.shutdown();
-
+        
+             for (int i = 0; i < population.size(); i++) {
+                 System.out.print(i+": "+population.get(i).getFitness()+", "+population.get(i).getFitness_err()+"\n");
+             }
         return population;
     }
          //dung cho the he P
-          private static List<Chromosome> predictFitness(List<Chromosome> subList) throws IOException, InterruptedException {
+          private static List<Chromosome> predictFitness(List<Chromosome> subList, List<Chromosome> temp) throws IOException, InterruptedException {
         // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
-        for (int i = 0; i < subList.size(); i++) {
-            Chromosome ch = subList.get(i);
-            ch = CalFitness.computeFitnessByKriging(ch, fitnessValues);
-            if (ch.getFitness() <= 0 || ch.getFitness() >= 100 || ch.getFitness() == Double.POSITIVE_INFINITY
+            
+            for (int i = 0; i < subList.size(); i++) {
+                Chromosome ch = subList.get(i);
+                ch = CalFitness.computeFitnessByKriging(ch, temp);
+                if (ch.getFitness() <= 0 || ch.getFitness() >= 100 || ch.getFitness() == Double.POSITIVE_INFINITY
                     || ch.getFitness() == Double.NEGATIVE_INFINITY) {
                
                     ch.setFitness(0);
                 
                 Object[] keySet = fitnessValues.keySet().toArray();
+//                    System.out.println("predict chromosome "+i+" completed\n");
                for(int j=0;j<test.GA_NERSystem.key_temp.length;j++)
                {
                    fitnessValues.remove(test.GA_NERSystem.key_temp[j]);
                }
                 subList.set(i, ch);
             }
+              System.out.println("predict chromosome "+i+" completed");
+                System.out.println("fitness value: "+ch.getFitness()+" fitness error: "+ch.getFitness_err());
         }
         return subList;
     }

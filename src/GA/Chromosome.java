@@ -43,12 +43,19 @@ public class Chromosome {
         encodedFeature= new BitSet(78);
     }
     public Chromosome(){
-        fitness=0;
-        fitness_err=0;
+        fitness=0.0;
+        fitness_err=0.0;
         encodedFeature= new BitSet(78);
         Random r= new Random();
         for (int i = 0; i < 78; i++) {
-            encodedFeature.set(i, r.nextBoolean());
+            if (r.nextDouble()>=0.5)
+            {
+                encodedFeature.set(i, true);
+            } 
+            else
+            {
+                encodedFeature.set(i, false);
+            }
         }
     }
 }
