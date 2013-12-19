@@ -4,11 +4,13 @@
  */
 package util;
 
+import java.util.Random;
+
 /**
  *
  * @author vietlink
  */
-public class Random {
+public class Random_util {
     private double idum;
     private double IA;
     private double IM;
@@ -20,9 +22,11 @@ public class Random {
     private double EPS;
     private double RNMX;
     private double iy;
-    private double[] iv;
     
-    public void Random(){
+//    private double[] iv;
+    
+    public void Random_util(){
+        
         idum=(double) -12345;
         IA=(double) 16807;
         IM=(double) 214748364;
@@ -34,8 +38,8 @@ public class Random {
         EPS=1.2e-7;
         RNMX=(1.0-EPS); //largest double less than 1
         iy=0;
-        iv=new double[NTAB]; 
-        assert(iv!=null);
+//        iv=new double[NTAB]; 
+//        assert(iv!=null);
     }
     public void Set_Seed(int x)
     {
@@ -50,54 +54,55 @@ public class Random {
         double x=(double) Next_Gaussian();
         return (double)(x*stdev+mean);
     }
-    public double Next_Double()
-    {
-        int j;
-        double k;
-        double temp;
-        if (idum<=0 || iy!=0)
-        {
-            if (-idum<1)
-                idum=1;
-            else
-                idum=-idum;
-            for(j=NTAB+7;j>=0;j--)
-            {
-                k=(double)(idum/(double)IQ);
-                idum=IA*(idum-k*IQ)-IR*k;
-                if (idum<0)
-                idum+=IM;
-                if (j<NTAB)
-                    iv[j]=idum;
-            }
-            for (int i=0; i<iv.length; i++){
-                System.out.print(iv[i]);
-            }
-            iy=iv[0];
-        }
-        k=(long)(idum/(double)IQ);
-        idum=IA*(idum-k*IQ)-IR*k;
-        if (idum<0)
-            idum+=IM;
-        j=(int)(iy/NDIV);
-        iy=iv[j];
-        iv[j]=idum;
-        if ((temp=AM*iy)>RNMX)
-            return RNMX;
-        else
-            return temp;
-     }
+//    public double Next_Double()
+//    {
+//        int j;
+//        double k;
+//        double temp;
+//        if (idum<=0 || iy!=0)
+//        {
+//            if (-idum<1)
+//                idum=1;
+//            else
+//                idum=-idum;
+//            for(j=NTAB+7;j>=0;j--)
+//            {
+//                k=(double)(idum/(double)IQ);
+//                idum=IA*(idum-k*IQ)-IR*k;
+//                if (idum<0)
+//                idum+=IM;
+//                if (j<NTAB)
+//                    iv[j]=idum;
+//            }
+//            for (int i=0; i<iv.length; i++){
+//                System.out.print(iv[i]);
+//            }
+//            iy=iv[0];
+//        }
+//        k=(long)(idum/(double)IQ);
+//        idum=IA*(idum-k*IQ)-IR*k;
+//        if (idum<0)
+//            idum+=IM;
+//        j=(int)(iy/NDIV);
+//        iy=iv[j];
+//        iv[j]=idum;
+//        if ((temp=AM*iy)>RNMX)
+//            return RNMX;
+//        else
+//            return temp;
+//     }
      public double Next_Gaussian()
      {
         int iset=0;
         double gset=0;
         double fac,rsq,v1,v2;
+        Random r= new Random();
         if (iset==0)
         {
             do
             {
-                v1=2.0*Next_Double()-1.0;
-                v2=2.0*Next_Double()-1.0;
+                v1=2.0*r.nextDouble()-1.0;
+                v2=2.0*r.nextDouble()-1.0;
                 rsq=v1*v1+v2*v2;
             }
             while (rsq>=1.0||rsq==0.0);
@@ -115,7 +120,8 @@ public class Random {
 //return TRUE with a probability
     public int Flip(double prob)
     {
-        double temp=Next_Double();
+        Random r= new Random();
+        double temp=r.nextDouble();
         if (temp<=prob)
             return 1;
         else 
@@ -125,7 +131,8 @@ public class Random {
 public int IRandom(int lower,int upper)
 {
  int temp;
- temp=lower+ (int)(Next_Double()*(upper-lower+1));
+ Random r= new Random();
+ temp=lower+ (int)(r.nextDouble()*(upper-lower+1));
   return temp;
 }
 }

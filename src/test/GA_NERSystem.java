@@ -59,7 +59,7 @@ public class GA_NERSystem {
         population = GA_Krigg.sortPopulation2(population);
 //        GA_Krigg.printPopulation(population);
 
-         GA_Krigg.printPopulation(population);
+//         GA_Krigg.printPopulation(population);
 //         population=recomputeFitness(population,train, dev);
          ch_max= population.get(0);
         System.out.println("------------------------ \n");

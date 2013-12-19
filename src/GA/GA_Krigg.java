@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import util.Random_util;
 /**
  *
  * @author vietlink
@@ -220,12 +220,19 @@ public class GA_Krigg {
         Collections.sort(population, new Comparator<Chromosome>() {
             @Override
             public int compare(Chromosome o1, Chromosome o2) {
-                Random r = new Random();
-                double rFitness1 = o1.getFitness()+ r.nextGaussian()*2*o1.getFitness_err() ;
-                double rFitness2 = o2.getFitness()+ r.nextGaussian()*2*o2.getFitness_err() ;
-                if (rFitness1 > rFitness2) {
+//                Random r = new Random();
+//                double rFitness1 = o1.getFitness()+ r.nextGaussian()*2*o1.getFitness_err() ;
+//                double rFitness2 = o2.getFitness()+ r.nextGaussian()*2*o2.getFitness_err() ;
+                Random_util r= new Random_util();
+                double mean;
+                double stdev;
+                double gaussian_val;
+                mean= o1.getFitness()-o2.getFitness();
+                stdev=Math.sqrt(o1.getFitness_err()*o1.getFitness_err()+o2.getFitness_err()*o2.getFitness_err());
+                gaussian_val=r.Next_Gaussian(mean, stdev);
+                if (gaussian_val<0) {
                     return -1;
-                } else if (rFitness1 < rFitness2) {
+                } else if (gaussian_val>0) {
                     return 1;
                 } else {
                     return 0;
@@ -291,8 +298,8 @@ public class GA_Krigg {
                }
                 subList.set(i, ch);
             }
-              System.out.println("predict chromosome "+i+" completed");
-                System.out.println("fitness value: "+ch.getFitness()+" fitness error: "+ch.getFitness_err());
+//              System.out.println("predict chromosome "+i+" completed");
+//                System.out.println("fitness value: "+ch.getFitness()+" fitness error: "+ch.getFitness_err());
         }
         return subList;
     }
