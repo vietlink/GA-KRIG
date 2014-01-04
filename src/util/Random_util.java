@@ -118,14 +118,14 @@ public class Random_util {
         }
      }
 //return TRUE with a probability
-    public int Flip(double prob)
+    public boolean Flip(double prob)
     {
         Random r= new Random();
         double temp=r.nextDouble();
         if (temp<=prob)
-            return 1;
+            return true;
         else 
-            return 0;
+            return false;
 }
 //return a random integer between lower and upper
 public int IRandom(int lower,int upper)

@@ -7,29 +7,29 @@ package test;
 import GA.CalFitness;
 import GA.Chromosome;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
+import java.util.Random;
 import util.Random_util;
 /**
  *
  * @author vietlink
  */
 public class TestMethod {
-//   static {
-//       System.load("/home/vietlink/NetBeansProjects/JNIDemoCd1/dist/libJNIDemoCdl.so");
-//   }
+
    static public void main (String[] args){
-     Random_util r= new Random_util();
-     r.Set_Seed(1543);
-     int t= r.Flip(0.3133);
-     System.out.print(t);
+      Chromosome x_star= new Chromosome();
+      Chromosome[] x=new Chromosome[13];
+      Random r= new Random();
+      double[] fitness= new double[13];
+      double [] result= new double[2];
+       for (int i = 0; i < 13; i++) {
+           x[i]= new Chromosome();
+           fitness[i]= r.nextDouble();
+       }
+       result=CalFitness.computeFitnessByKrig(x_star, x, fitness);
+       
    }
 
-//    private native void InitRanGen(); 
-//    private native void Set_Seed(int a);
-//    private native void Set_Seed(long a);
-//    private native double Next_Gaussian(double a, double b);
-//    private native double Next_Double();
-//    private native double Next_Gaussian();
-//    private native boolean Flip(double a);
-//    private native int IRandom(int a, int b);
+
 }

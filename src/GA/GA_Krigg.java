@@ -80,9 +80,9 @@ public class GA_Krigg {
 
     }
     public static Chromosome[] crossover(Chromosome[] parents, double threshold) {
-        Random r = new Random();
-        double t = r.nextDouble();
-        if (t > threshold) {
+        Random_util r = new Random_util();
+        
+        if (!r.Flip(threshold)) {
             return parents;
         }
         Chromosome[] springs = new Chromosome[2];
@@ -105,8 +105,8 @@ public class GA_Krigg {
     }
     public static Chromosome mutation(Chromosome ch, double threshold/*, List<String> featureNames*/) {
         Random r = new Random();
-        double t = r.nextDouble();
-        if (t > threshold) {
+        Random_util r_util= new Random_util();
+        if (!r_util.Flip(threshold)) {
             return ch;
         }
         int a = r.nextInt(78);
@@ -147,10 +147,29 @@ public class GA_Krigg {
         return realChromosome;
     }
     // dung cho the he F1 tro di
-    public static List<Chromosome> computeFitness (List<Chromosome> population, List<Chromosome> temp, List<Datum> train, List<Datum> dev) 
+    public static List<Chromosome> computeFitness (List<Chromosome> population, List<Datum> train, List<Datum> dev) 
             throws InterruptedException, IOException {
-       new_population= predictFitness2(population, temp);
-       return new_population;
+       List<Chromosome> sub_population;
+       List<Chromosome> temp=getRealChromosome();
+       population= predictFitness2(population, temp);
+       System.out.print("predict complete \n");
+       population= sortPopulation2(population);
+        System.out.println("sort completed \n");
+       sub_population= population.subList(0, (int)((1-percentPredict)*population.size()));
+//        for (int i = 0; i < sub_population.size(); i++) {
+//            System.err.print("predict "+i+": "+sub_population.get(i).getFitness()+", "+sub_population.get(i).getFitness_err()+"\n");
+//        }
+       realChromosome=parallelComputeFitness(sub_population, train, dev);
+//       for (int i = 0; i < realChromosome.size(); i++) {
+//            System.err.print("real "+i+": "+realChromosome.get(i).getFitness()+", "+realChromosome.get(i).getFitness_err()+"\n");
+//        }
+       for (int i=0; i<realChromosome.size(); i++){
+           population.set(i, realChromosome.get(i));
+       }
+//        for (int i = 0; i < population.size(); i++) {
+//            System.err.print("pop "+i+": "+population.get(i).getFitness()+", "+population.get(i).getFitness_err()+"\n");
+//        }
+       return population;
     }
     
     public static List<Chromosome> predictFitness2(List<Chromosome> pop, List<Chromosome> temp){
@@ -260,11 +279,11 @@ public class GA_Krigg {
             List<Datum> train, List<Datum> dev) throws InterruptedException {
              
         System.out.println("Parallel compute\n");
-        ExecutorService executor = Executors.newFixedThreadPool(4);
+        ExecutorService executor = Executors.newFixedThreadPool(2);
 
         List<Future<Integer>> results;
         List a = new ArrayList();
-        a.add(new CalFitness(population.subList(0, population.size() / 2), 0, population.size() / 2,
+        a.add(new CalFitness(population.subList(0, population.size()/2), 0, population.size()/2,
                 train, dev, fitnessValues1));
         a.add(new CalFitness(population.subList(population.size() / 2, population.size() ), 0, population.size() / 2,
                 train, dev, fitnessValues2));
@@ -273,9 +292,9 @@ public class GA_Krigg {
         
         executor.shutdown();
         
-             for (int i = 0; i < population.size(); i++) {
-                 System.out.print(i+": "+population.get(i).getFitness()+", "+population.get(i).getFitness_err()+"\n");
-             }
+//             for (int i = 0; i < population.size(); i++) {
+//                 System.out.print(i+": "+population.get(i).getFitness()+", "+population.get(i).getFitness_err()+"\n");
+//             }
         return population;
     }
          //dung cho the he P
@@ -384,11 +403,12 @@ public class GA_Krigg {
     public static List<Chromosome> recomputeFitness(List<Chromosome> population,
             List<Datum> train, List<Datum> dev) throws IOException, InterruptedException {
         
-        double temp= percentTop*population.size();
+        double temp= population.size();
         for (int i = 0; i < temp; i++) {
             Chromosome ch = population.get(i);
             if (ch.getFitness_err() > 0) {
                 calFitness(ch, train, dev);
+                System.out.print("gfbsfd \n");
             }
         }
         for(int i=0; i< temp;i++)
@@ -408,7 +428,7 @@ public class GA_Krigg {
             }
             
         }
-
+        
         return population;
 
     }

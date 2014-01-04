@@ -77,9 +77,9 @@ public class CalFitness implements Callable<List<Chromosome>> {
                     String devFile = path + String.valueOf("dev"+r.nextInt(10000000));
                     featureFactory.writeToFeatureFile(computedTrain, trainFile, listFeature);
                     featureFactory.writeToFeatureFile(computedDev, devFile, listFeature);
-                    System.out.print("Chromosome "+i+" :To maxent \n");
+//                    System.out.print("Chromosome "+i+" :To maxent \n");
                     String result = runMaxent(trainFile, devFile);
-                    System.out.println("Chromosome "+i+" :Maxent completed \n");
+//                    System.out.println("Chromosome "+i+" :Maxent completed \n");
                     int start2 = 0;                    
                     result = result.trim();                  
                     for (int j = 0; j < result.length(); j++) {
@@ -92,6 +92,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
                     }
                     result = result.substring(start2 - 1, result.indexOf("%"));
                     ch.setFitness(Double.valueOf(result) * 0.99 + 0.01 *78/ ch.getEncodedFeature().cardinality());
+                    ch.setFitness_err(0.0);
                     System.out.print("Chromosome "+i+" Done \n");
 //                    System.out.println("Chromosome "+i+" : fitness "+ch.getFitness()+" err: "+ch.getFitness_err());
                     //delete file
@@ -240,14 +241,16 @@ public class CalFitness implements Callable<List<Chromosome>> {
         org.jmatrices.dbl.Matrix Y_matrix = MatrixFactory.getMatrix(1, N + 1, null, Y);
         org.jmatrices.dbl.Matrix Vstar_matrix = MatrixFactory.getMatrix(1, N + 1, null, Vstar);
         org.jmatrices.dbl.Matrix V_matrix = MatrixFactory.getMatrix(N + 1, N + 1, null, V);
-//        System.out.println(V_matrix);
+        System.out.println(V_matrix +"\n");
         try {
             org.jmatrices.dbl.Matrix V_matrix_Inv = MatrixTransformer.inverse(V_matrix);
+            System.out.println(V_matrix_Inv+"\n");
             org.jmatrices.dbl.Matrix ystar_matrix =
                     MatrixOperator.multiply(MatrixOperator.multiply(Vstar_matrix, V_matrix_Inv), MatrixTransformer.transpose(Y_matrix));
+//            System.out.println(ystar_matrix+"\n");
             org.jmatrices.dbl.Matrix variance =
                     MatrixOperator.multiply(MatrixOperator.multiply(Vstar_matrix, V_matrix_Inv), MatrixTransformer.transpose(Vstar_matrix));
-
+//            System.out.println(variance);
 
             //return null;
             result = new double[2];
@@ -262,7 +265,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
             result[1] = variance.get(1, 1);
             return result;
         } catch (Exception e) {
-//            e.printStackTrace();
+            System.out.println(V_matrix +"\n");
             return new double[]{0.0, 0.0};
 
         }
@@ -285,6 +288,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
         BitSet t= (BitSet) a.getEncodedFeature().clone();
         t.xor(b.getEncodedFeature());
         result= t.cardinality();
+//        System.out.print(t+"\n");
         return result;
     }
     

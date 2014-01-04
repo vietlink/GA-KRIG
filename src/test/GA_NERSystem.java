@@ -29,7 +29,7 @@ public class GA_NERSystem {
     public static List<String> locDict = new ArrayList<>();
     public static List<String> orgDict = new ArrayList<>();
     public static String[] key_temp;
-    public static List<Chromosome> temp;
+    
     /**
      * @param args the command line arguments
      */
@@ -51,6 +51,9 @@ public class GA_NERSystem {
         key_temp = new String[startSize];
         // tao quan the ngau nhien
         List<Chromosome> population = GA_Krigg.createRandomPopulation(startSize);
+//        for (int i = 0; i < population.size(); i++) {
+//            System.out.print(population.get(i).getEncodedFeature()+"\n");
+//        }
 //        System.out.println("create completed");
         // tinh fitness cho ca the
         population = GA_Krigg.computeFitness2(population, train, dev);
@@ -59,28 +62,46 @@ public class GA_NERSystem {
         population = GA_Krigg.sortPopulation2(population);
 //        GA_Krigg.printPopulation(population);
 
-//         GA_Krigg.printPopulation(population);
+         GA_Krigg.printPopulation(population);
 //         population=recomputeFitness(population,train, dev);
          ch_max= population.get(0);
         System.out.println("------------------------ \n");
+        
         for (int i = 1; i < numberGeneration; i++) {
-            System.out.println("Generation "+i);
-            temp= GA_Krigg.getRealChromosome();
+            System.err.println("Generation "+i);
+            List<Chromosome> temp;
+            
+//            for (int j=0; j<temp.size(); j++){
+//                System.out.println("temp "+temp.get(j).getFitness()+" "+temp.get(j).getFitness_err()+"\n");
+//            }
             // tao the he tiep theo
             population = GA_Krigg.createNewPopulation2(population);
+//            for (int j = 0; j < population.size(); j++) {
+//            System.out.print(population.get(j).getEncodedFeature()+"\n");
+//        }
+//            System.out.println("create completed");
             //tinh fitness
-            population = GA_Krigg.computeFitness(population,temp, train, dev);
+//            temp= GA_Krigg.getRealChromosome();
+            population = GA_Krigg.computeFitness(population, train, dev);
             //sap xep ca the
             population = GA_Krigg.sortPopulation2(population);
-            
-//            GA_Krigg.printPopulation(population);
+            ch_max= population.get(0);
+            if(i==numberGeneration-1){
+                int noOfcal=0;                
+                while (ch_max.getFitness_err()>0 && noOfcal<5){
+                    ch_max=GA_Krigg.calFitness(ch_max, train, dev);
+                    population.set(0, ch_max);
+                    population=GA_Krigg.sortPopulation2(population);
+                }
+            }
+            GA_Krigg.printPopulation(population);
             //tinh lai fitness
 //             population=GA_Krigg.recomputeFitness(population,train,dev);
              //sap xep lai ca the
 //             population = GA_Krigg.sortPopulation2(population);
-//           
-            ch_max= population.get(0);
-              System.out.println("Ch max:" + ch_max.getFitness());
+//            population= GA_Krigg.sortPopulation2(population);
+            
+            System.err.println("Ch max:" + ch_max.getFitness());
         }
         System.out.println("------------------------ \n");
         GA_Krigg.printPopulation(population);
