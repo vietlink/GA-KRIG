@@ -42,7 +42,7 @@ public class GA_NERSystem {
 //        perDict = FileOperation.readDictFromFile("perDict");
 //        locDict = FileOperation.readDictFromFile("locDict");
 //        orgDict = FileOperation.readDictFromFile("orgDict");
-        evolution4(40, train, dev, 1);
+        evolution4(40, train, dev, 5);
     }
     
     public static void evolution4(int startSize, List<Datum> train,

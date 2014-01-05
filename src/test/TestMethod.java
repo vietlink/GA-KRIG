@@ -11,6 +11,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 import util.Random_util;
+import Jama.*;
+import GA.matrix;
 /**
  *
  * @author vietlink
@@ -18,17 +20,24 @@ import util.Random_util;
 public class TestMethod {
 
    static public void main (String[] args){
-      Chromosome x_star= new Chromosome();
-      Chromosome[] x=new Chromosome[13];
-      Random r= new Random();
-      double[] fitness= new double[13];
-      double [] result= new double[2];
-       for (int i = 0; i < 13; i++) {
-           x[i]= new Chromosome();
-           fitness[i]= r.nextDouble();
+      double[][] mat= new double[1][10];
+       for (int i = 0; i < 1; i++) {
+           for (int j = 0; j < 10; j++) {
+               mat[i][j]= j;
+           }
        }
-       result=CalFitness.computeFitnessByKrig(x_star, x, fitness);
-       
+      Matrix A= matrix.creatMatrix(1, 10, mat);
+      
+      Matrix C=A.times(A.transpose());
+      System.out.println("rows: "+ A.getRowDimension());
+      System.out.println("cols: "+A.getColumnDimension());      
+      System.out.println("rows: "+ C.getRowDimension());
+      System.out.println("cols: "+C.getColumnDimension());      
+      for (int i = 0; i < 1; i++) {
+           for (int j = 0; j < 10; j++) {
+               System.out.println(C.get(i, j)+" ");
+           }
+      }
    }
 
 

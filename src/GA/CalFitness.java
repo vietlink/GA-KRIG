@@ -17,6 +17,7 @@ import java.util.concurrent.Callable;
 import org.jmatrices.dbl.Matrix;
 import util.Convert;
 
+
 import org.jmatrices.dbl.MatrixFactory;
 import org.jmatrices.dbl.operator.MatrixOperator;
 import org.jmatrices.dbl.transformer.MatrixTransformer;
@@ -38,11 +39,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
     }
 
     public CalFitness(List<Chromosome> population, int start, int end, List<Datum> train, List<Datum> dev) {
-        this.population = population;
-        this.start = start;
-        this.end = end;
-        this.train = train;
-        this.dev = dev;
+        this(population, start, end, train, dev, null);
     }
 
     public CalFitness(List<Chromosome> population, int start, int end, List<Datum> train, List<Datum> dev, HashMap</*String*/Chromosome, Double> fitnessValue) {
@@ -210,7 +207,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
         double[][] Y = new double[1][N + 1];
         double[][] Vstar = new double[1][N + 1];
         double[][] V = new double[N + 1][N + 1];
-        System.arraycopy(fitness, 0, Y[0], 0, N);
+        System.arraycopy(fitness, 0, Y[0], 0, N-1);
          
         Y[0][N] = 0;
 //         System.out.println("Matrix Y");
@@ -238,40 +235,51 @@ public class CalFitness implements Callable<List<Chromosome>> {
 //             }
 //             System.out.println("\n"); 
 //        }
-        org.jmatrices.dbl.Matrix Y_matrix = MatrixFactory.getMatrix(1, N + 1, null, Y);
-        org.jmatrices.dbl.Matrix Vstar_matrix = MatrixFactory.getMatrix(1, N + 1, null, Vstar);
-        org.jmatrices.dbl.Matrix V_matrix = MatrixFactory.getMatrix(N + 1, N + 1, null, V);
-        System.out.println(V_matrix +"\n");
-        try {
-            org.jmatrices.dbl.Matrix V_matrix_Inv = MatrixTransformer.inverse(V_matrix);
-            System.out.println(V_matrix_Inv+"\n");
-            org.jmatrices.dbl.Matrix ystar_matrix =
-                    MatrixOperator.multiply(MatrixOperator.multiply(Vstar_matrix, V_matrix_Inv), MatrixTransformer.transpose(Y_matrix));
-//            System.out.println(ystar_matrix+"\n");
-            org.jmatrices.dbl.Matrix variance =
-                    MatrixOperator.multiply(MatrixOperator.multiply(Vstar_matrix, V_matrix_Inv), MatrixTransformer.transpose(Vstar_matrix));
-//            System.out.println(variance);
-
-            //return null;
-            result = new double[2];
-            result[0] = ystar_matrix.get(1, 1);
-            if (result[0] == Double.POSITIVE_INFINITY) {
-//                System.out.println("Infinity here !!!!!!!!");
+//        org.jmatrices.dbl.Matrix Y_matrix = MatrixFactory.getMatrix(1, N + 1, null, Y);
+        Jama.Matrix Y_matrix= matrix.creatMatrix(1, N, Y);
+        Jama.Matrix V_star_matrix= matrix.creatMatrix(1, N, Vstar);
+        Jama.Matrix V_matrix= matrix.creatMatrix(N, N, V);
+        Jama.Matrix V_matrix_inverse= V_matrix.inverse();
+//        org.jmatrices.dbl.Matrix Vstar_matrix = MatrixFactory.getMatrix(1, N + 1, null, Vstar);
+//        org.jmatrices.dbl.Matrix V_matrix = MatrixFactory.getMatrix(N + 1, N + 1, null, V);
+//        System.out.println(V_matrix +"\n");
+//        try {
+//            org.jmatrices.dbl.Matrix V_matrix_Inv = MatrixTransformer.inverse(V_matrix);
+//            System.out.println(V_matrix_Inv+"\n");
+//            org.jmatrices.dbl.Matrix ystar_matrix =
+//                    MatrixOperator.multiply(MatrixOperator.multiply(Vstar_matrix, V_matrix_Inv), MatrixTransformer.transpose(Y_matrix));
+////            System.out.println(ystar_matrix+"\n");
+//            org.jmatrices.dbl.Matrix variance =
+//                    MatrixOperator.multiply(MatrixOperator.multiply(Vstar_matrix, V_matrix_Inv), MatrixTransformer.transpose(Vstar_matrix));
+////            System.out.println(variance);
+//
+//            //return null;
+//            result = new double[2];
+//            result[0] = ystar_matrix.get(1, 1);
+//            if (result[0] == Double.POSITIVE_INFINITY) {
+////                System.out.println("Infinity here !!!!!!!!");
+//                return new double[]{0.0, 0.0};
+//            }
+//
+////            System.out.println("Variance matrix");
+////            System.out.println(variance);
+//            result[1] = variance.get(1, 1);
+//            return result;
+//        } catch (Exception e) {
+//            System.out.println(V_matrix +"\n");
+//            return new double[]{0.0, 0.0};
+//
+//        }
+        Jama.Matrix value= (V_star_matrix.times(V_matrix_inverse)).times(Y_matrix.transpose());
+        Jama.Matrix variance=(V_star_matrix.times(V_matrix_inverse)).times(V_star_matrix.transpose());
+        result=new double[2];        
+        result[0]= value.get(0,0);
+        result[1]= variance.get(0,0);
+        if (result[0] == Double.POSITIVE_INFINITY) {
+                System.out.println("Infinity here !!!!!!!!");
                 return new double[]{0.0, 0.0};
-            }
-
-//            System.out.println("Variance matrix");
-//            System.out.println(variance);
-            result[1] = variance.get(1, 1);
-            return result;
-        } catch (Exception e) {
-            System.out.println(V_matrix +"\n");
-            return new double[]{0.0, 0.0};
-
         }
-
-
-
+        return result;
     }
     public static double variogram(Chromosome x1, Chromosome x2)
     {
