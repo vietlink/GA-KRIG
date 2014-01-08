@@ -27,6 +27,7 @@ import org.jmatrices.dbl.transformer.MatrixTransformer;
  * @author vietlink
  */
 public class CalFitness implements Callable<List<Chromosome>> {
+    private static final double epsilon=0.03;
     public static int count=0;
     public List<Chromosome> population;
     public int start;
@@ -88,7 +89,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
 
                     }
                     result = result.substring(start2 - 1, result.indexOf("%"));
-                    ch.setFitness(Double.valueOf(result) * 0.99 + 0.01 *78/ ch.getEncodedFeature().cardinality());
+                    ch.setFitness(Double.valueOf(result) * 0.8 + 0.2 *78/ ch.getEncodedFeature().cardinality());
                     ch.setFitness_err(0.0);
                     System.out.print("Chromosome "+i+" Done \n");
 //                    System.out.println("Chromosome "+i+" : fitness "+ch.getFitness()+" err: "+ch.getFitness_err());
@@ -236,9 +237,15 @@ public class CalFitness implements Callable<List<Chromosome>> {
 //             System.out.println("\n"); 
 //        }
 //        org.jmatrices.dbl.Matrix Y_matrix = MatrixFactory.getMatrix(1, N + 1, null, Y);
-        Jama.Matrix Y_matrix= matrix.creatMatrix(1, N, Y);
-        Jama.Matrix V_star_matrix= matrix.creatMatrix(1, N, Vstar);
-        Jama.Matrix V_matrix= matrix.creatMatrix(N, N, V);
+        Jama.Matrix Y_matrix= matrix.creatMatrix(1, N+1, Y);
+        Jama.Matrix V_star_matrix= matrix.creatMatrix(1, N+1, Vstar);
+        Jama.Matrix V_matrix= matrix.creatMatrix(N+1, N+1, V);
+        while (V_matrix.det()==0.0){
+            for (int i = 0; i < N+1; i++) { 
+                    double t= V_matrix.get(i, i)+epsilon;
+                    V_matrix.set(i, i, t);                
+            }
+        }
         Jama.Matrix V_matrix_inverse= V_matrix.inverse();
 //        org.jmatrices.dbl.Matrix Vstar_matrix = MatrixFactory.getMatrix(1, N + 1, null, Vstar);
 //        org.jmatrices.dbl.Matrix V_matrix = MatrixFactory.getMatrix(N + 1, N + 1, null, V);
