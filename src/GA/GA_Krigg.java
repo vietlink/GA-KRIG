@@ -4,6 +4,7 @@
  */
 package GA;
 
+import com.snuggy.nr.util.NRException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -148,7 +149,7 @@ public class GA_Krigg {
     }
     // dung cho the he F1 tro di
     public static List<Chromosome> computeFitness (List<Chromosome> population, List<Datum> train, List<Datum> dev) 
-            throws InterruptedException, IOException {
+            throws InterruptedException, IOException, NRException {
        List<Chromosome> sub_population;
        List<Chromosome> temp=getRealChromosome();
        population= predictFitness2(population, temp);
@@ -172,10 +173,10 @@ public class GA_Krigg {
        return population;
     }
     
-    public static List<Chromosome> predictFitness2(List<Chromosome> pop, List<Chromosome> temp){
-        for (int i = 0; i < pop.size(); i++) {
-            Chromosome c= pop.get(i);
-            c = CalFitness.computeFitnessByKriging2(c, temp);
+    public static List<Chromosome> predictFitness2(List<Chromosome> pop, List<Chromosome> temp) throws NRException{
+        
+            
+            pop= CalFitness.computeFitnessByKriging2(pop, temp);
 //            if (c.getFitness() <= 0 || c.getFitness() >= 100 || c.getFitness() == Double.POSITIVE_INFINITY
 //                    || c.getFitness() == Double.NEGATIVE_INFINITY) {
 //               
@@ -187,15 +188,13 @@ public class GA_Krigg {
 //                   fitnessValues.remove(test.GA_NERSystem.key_temp[j]);
 //               }
 //                pop.set(i, c);
-//            }
-             pop.set(i, c);
-        }
+//            }                     
         return pop;
             
         }
     
       // dung cho the he P ban dau
-     public static  List<Chromosome> computeFitness2(List<Chromosome> population, List<Datum> train, List<Datum> dev) throws InterruptedException, IOException, ExecutionException {
+     public static  List<Chromosome> computeFitness2(List<Chromosome> population, List<Datum> train, List<Datum> dev) throws InterruptedException, IOException, ExecutionException, NRException {
       
         new_population = new ArrayList<Chromosome>();
         double temp= (1 - percentPredict) * population.size();        
@@ -298,12 +297,13 @@ public class GA_Krigg {
         return population;
     }
          //dung cho the he P
-          private static List<Chromosome> predictFitness(List<Chromosome> subList, List<Chromosome> temp) throws IOException, InterruptedException {
+          private static List<Chromosome> predictFitness(List<Chromosome> subList, List<Chromosome> temp) throws IOException, InterruptedException, NRException {
         // throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             
-            for (int i = 0; i < subList.size(); i++) {
+            
+                subList = CalFitness.computeFitnessByKriging2(subList, temp);
+                for (int i = 0; i < subList.size(); i++) {
                 Chromosome ch = subList.get(i);
-                ch = CalFitness.computeFitnessByKriging(ch, temp);
                 if (ch.getFitness() <= 0 || ch.getFitness() >= 100 || ch.getFitness() == Double.POSITIVE_INFINITY
                     || ch.getFitness() == Double.NEGATIVE_INFINITY) {
                

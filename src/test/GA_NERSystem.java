@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import GA.*;
+import com.snuggy.nr.util.NRException;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import util.FileOperation;
@@ -16,7 +17,9 @@ import util.FileOperation;
  * @author vietlink
  */
 public class GA_NERSystem {
-    
+    private static final int NO_OF_GENERATION=5;
+    private static final int NO_OF_CHROMOSOME=40;
+    private static final double PERCENT_PREDICT=0.7;
     public static List<String> featureNames;
     public static Chromosome ch_max = new Chromosome();
     public static HashMap<Chromosome, Double> fitnessValues = new HashMap<>();
@@ -33,7 +36,7 @@ public class GA_NERSystem {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, ExecutionException{
+    public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException, ExecutionException, NRException{
         // TODO code application logic here
         List<Datum> train = FileOperation.readDataFile("/home/vietlink/Documents/chuong_trinh/postagged/trn/");
         List<Datum> dev = FileOperation.readDataFile("/home/vietlink/Documents/chuong_trinh/postagged/dev");
@@ -42,40 +45,45 @@ public class GA_NERSystem {
 //        perDict = FileOperation.readDictFromFile("perDict");
 //        locDict = FileOperation.readDictFromFile("locDict");
 //        orgDict = FileOperation.readDictFromFile("orgDict");
-        evolution4(40, train, dev, 5);
+        evolution4(NO_OF_CHROMOSOME, train, dev, NO_OF_GENERATION);
     }
     
     public static void evolution4(int startSize, List<Datum> train,
-            List<Datum> dev, int numberGeneration) throws InterruptedException, IOException, ExecutionException {
+            List<Datum> dev, int numberGeneration) throws InterruptedException, IOException, ExecutionException, NRException {
         
         key_temp = new String[startSize];
+        int seed_size= (int)(startSize*(1-PERCENT_PREDICT));
         // tao quan the ngau nhien
-        List<Chromosome> population = GA_Krigg.createRandomPopulation(startSize);
+        List<Chromosome> population;
+        List<Chromosome> seed_population;
+        seed_population = GA_Krigg.createRandomPopulation(seed_size);
+        seed_population = GA_Krigg.calFitnessPopulation(seed_population, train, dev);
+        GA_Krigg.printPopulation(seed_population);
 //        for (int i = 0; i < population.size(); i++) {
 //            System.out.print(population.get(i).getEncodedFeature()+"\n");
 //        }
-//        System.out.println("create completed");
-        // tinh fitness cho ca the
-        population = GA_Krigg.computeFitness2(population, train, dev);
+//        System.out.println("create completed");                        
 //        System.out.print("compute completed");
-        //sap xep ca the theo fitness
+        population= GA_Krigg.createRandomPopulation(startSize);
+        population=GA_Krigg.predictFitness2(population, seed_population);
+        //sap xep ca the theo fitness                
         population = GA_Krigg.sortPopulation2(population);
-//        GA_Krigg.printPopulation(population);
-
-         GA_Krigg.printPopulation(population);
+        GA_Krigg.printPopulation(population);
 //         population=recomputeFitness(population,train, dev);
-         ch_max= population.get(0);
+        List<Chromosome> sub_population= population.subList(0, (int)((1-PERCENT_PREDICT)*population.size()));
+        sub_population=GA_Krigg.parallelComputeFitness(sub_population, train, dev);
+        sub_population=GA_Krigg.sortPopulation2(sub_population);
+        ch_max= sub_population.get(0);
         System.out.println("------------------------ \n");
         
         for (int i = 1; i < numberGeneration; i++) {
-            System.err.println("Generation "+i);
-            List<Chromosome> temp;
-            
+            System.err.println("Generation "+(i+1));                                                                
+                population = GA_Krigg.createNewPopulation2(population);            
 //            for (int j=0; j<temp.size(); j++){
 //                System.out.println("temp "+temp.get(j).getFitness()+" "+temp.get(j).getFitness_err()+"\n");
 //            }
             // tao the he tiep theo
-            population = GA_Krigg.createNewPopulation2(population);
+            
 //            for (int j = 0; j < population.size(); j++) {
 //            System.out.print(population.get(j).getEncodedFeature()+"\n");
 //        }
