@@ -11,8 +11,8 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
 import util.Random_util;
-import Jama.*;
-import GA.matrix;
+
+
 import com.snuggy.nr.util.NRException;
 import krig.Krig;
 import krig.Powvargram;

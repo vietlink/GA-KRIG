@@ -61,9 +61,15 @@ public class FileOperation {
                     String line = "";
                     while ((line = bfr.readLine()) != null) {
                         String[] strs = line.split("\\s+");
-                        //  System.out.println(strs[0]+":"+strs[1]);
+                            if (line.isEmpty()||line.trim().equals("")||line.trim().equals("\n")){
+//                        System.out.println("skipped");
+                    }
+                    else{
+//                        System.out.println(strs[0]+":"+strs[1]);
                         Datum d = new Datum(strs[0], strs[2], strs[1]);
                         datums.add(d);
+                        
+                    }
 
                     }
                     bfr.close();

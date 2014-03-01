@@ -15,13 +15,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
-import org.jmatrices.dbl.Matrix;
+
 import util.Convert;
 import krig.*;
 
-import org.jmatrices.dbl.MatrixFactory;
-import org.jmatrices.dbl.operator.MatrixOperator;
-import org.jmatrices.dbl.transformer.MatrixTransformer;
 
 /**
  *
@@ -90,7 +87,7 @@ public class CalFitness implements Callable<List<Chromosome>> {
 
                     }
                     result = result.substring(start2 - 1, result.indexOf("%"));
-                    ch.setFitness(Double.valueOf(result) * 0.8 + 0.2 *78/ ch.getEncodedFeature().cardinality());
+                    ch.setFitness(Double.valueOf(result));
                     ch.setFitness_err(0.0);
                     System.out.print("Chromosome "+i+" Done \n");
 //                    System.out.println("Chromosome "+i+" : fitness "+ch.getFitness()+" err: "+ch.getFitness_err());
